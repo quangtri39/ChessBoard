@@ -1,4 +1,7 @@
-const hoverColor = 'green';// Chuyển thành màu xanh khi kéo cờ vào ô
+const hoverColor = 'green';     // Chuyển thành màu xanh khi kéo cờ vào ô
+const hoverKillColor = 'red';   // Chuyển thành màu đỏ khi kéo quân cờ ta vào quân cờ địch
+var playerTurn = 'white';       // Biến đến lượt người chơi
+
 const piecesCharWhite = {
     pawn: '♙',
     knight: '♘',
@@ -15,17 +18,16 @@ const piecesCharBlack = {
     king: '♚',
     queen: '♛'
 };
-var playerTurn = 'white';   // Biến đến lượt người chơi
+
+
 // Biến lưu thông tin quân cờ khi Dragg
 var playerSelect = {
+    dragged: '',    // Biến lưu Item Drag để sau khi drag thì add lại vào nơi cuối
     piece: '',      // Quân cờ
     player: '',     // Người chơi
     row: '',        // Dòng
     column: ''      // Cột
 }
-// Biến lưu Item Drag để sau khi drag thì add lại vào nơi cuối
-var dragged;
-
 
 // Khởi tạo bàn cờ
 document.querySelectorAll("[piece]").forEach(target =>{
@@ -55,17 +57,21 @@ document.addEventListener('mousedown', function(event) {
 
 /* events fired on the draggable target */
 document.addEventListener("drag", function(event) {
-
+    
 }, false);
 
 // Hàm khi bắt đầu quá trình Drag thì quân cờ đang cầm hiển thị như thế nào
 document.addEventListener("dragstart", function(event) {
-    // Truyền quân cờ vào biến tạm
-    dragged = event.target; 
     // Lấy thông tin của Element cha
-    let parentDragg = dragged.parentElement;
+    let parentDragg = event.target.parentElement;
     // Thêm thông tin của cờ vào biến toàn cục
-    playerSelect = {piece: dragged.getAttribute("piece"), player: dragged.getAttribute("player"), row: parentDragg.getAttribute("row"), column: parentDragg.getAttribute("column")}
+    playerSelect = {
+        dragged: event.target, 
+        piece: event.target.getAttribute("piece"), 
+        player: event.target.getAttribute("player"), 
+        row: parentDragg.getAttribute("row"), 
+        column: parentDragg.getAttribute("column")
+    }
     // Cho màu cờ nhạt đi
     event.target.style.opacity = .5;
 }, false);
@@ -84,18 +90,41 @@ document.addEventListener("dragover", function(event) {
 
 // Hàm giúp đổi màu nền những vị trí mà kéo vô
 document.addEventListener("dragenter", function(event) {
-    // highlight potential drop target when the draggable element enters it
+    // Nếu ô có class dropzone thì đổi màu
     if (event.target.classList.contains('dropzone')) {
         event.target.style.background = hoverColor;
+        return;
     }
-
+    // Lấy ra cha của element
+    let parentEle = event.target.parentElement;
+    // Nếu cha Element không có class dropzone thì quay lại
+    if(!parentEle.classList.contains('dropzone')){
+        // Reset lại background      
+        event.target.style.background = "";
+        return;
+    }
+    // Kiểm tra đó có phải quân cờ của mình không, nếu trùng thì return
+    if( playerSelect.player == event.target.getAttribute("player")){
+        event.target.style.background = "";
+        return;
+    }
+    event.target.style.background = hoverKillColor;
 }, false);
 
 // Hàm khi kéo cờ ra vị trí khác thì trả lại màu nền ban đầu
 document.addEventListener("dragleave", function(event) {
     // reset background of potential drop target when the draggable element leaves it
-    if (event.target.classList.contains('dropzone')) {
+    if (event.target.classList.contains('dropzone')) { 
+        // Reset lại background       
         event.target.style.background = "";
+        return;
+    }         
+    // Lấy ra cha của element
+    let parentEle = event.target.parentElement;
+    // Nếu cha element có class dropzone thì trả về
+    if(parentEle.classList.contains('dropzone')){  
+        // Reset lại background   
+        event.target.style.background = ""; 
     }
 
 }, false);
@@ -106,8 +135,9 @@ document.addEventListener("drop", function(event) {
     event.preventDefault();
     // Kiểm tra xem nơi thả có đúng ô không
     if (!event.target.classList.contains('dropzone')) {
+        // Lấy ra cha của element không có class dropzone
         let parentEle = event.target.parentElement;
-        // Nếu kéo 1 quân cờ vào 1 quân cờ khác thì kiểm tra parentElement có phải trùng dropzone không
+        // Nếu cha Element không có class dropzone thì quay lại
         if(!parentEle.classList.contains('dropzone')){
             event.target.style.background = "";
             return;
@@ -118,26 +148,23 @@ document.addEventListener("drop", function(event) {
             return;
         }
         // Nếu là quân cờ của đối thủ thì
-
+        
         // Xóa cờ đối thủ
         parentEle.innerText = '';
         // Xóa vị trí cũ cờ của mình
-        dragged.parentNode.removeChild( dragged );
+        playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
         // Thêm cờ của mình vào vị trí mới
-        parentEle.appendChild( dragged );
+        parentEle.appendChild( playerSelect.dragged );
         return;
     }
-    // Kiểm tra xem ô đấy đã có quân cờ và là quân cờ của mình thì trở về
-    // let destination = event.target.firstChild;
-    // console.log(event.target);
-    // if(destination){
-    //     // && destination.querySelector(''
-    //     event.target.style.background = "";
-    //     return;
-    // }
+    // Nếu là ô không có con cờ nào
+
     // Reset màu background lại như cũ
     event.target.style.background = "";
-
-    event.target.innerText = '';
-    event.target.appendChild( dragged );
-}, false); 
+    
+    // Xóa vị trí cũ cờ của mình
+    playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
+    // Thêm cờ của mình vào vị trí mới
+    event.target.appendChild( playerSelect.dragged );
+    
+}, false);
