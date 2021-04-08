@@ -1,6 +1,6 @@
 const hoverColor = 'green';     // Chuyển thành màu xanh khi kéo cờ vào ô
 const hoverKillColor = 'red';   // Chuyển thành màu đỏ khi kéo quân cờ ta vào quân cờ địch
-var playerTurn = 'white';       // Biến đến lượt người chơi
+var playerTurn = 'black';       // Biến đến lượt người chơi
 
 const piecesCharWhite = {
     pawn: '♙',
@@ -90,25 +90,21 @@ document.addEventListener("dragover", function(event) {
 
 // Hàm giúp đổi màu nền những vị trí mà kéo vô
 document.addEventListener("dragenter", function(event) {
-    // Nếu ô có class dropzone thì đổi màu
-    if (event.target.classList.contains('dropzone')) {
+    // Kiểm tra xem nơi thả có đúng ô không, 1: ô trống, 2: ô đã có quân cờ, -1: thả không đúng ô trên bàn cờ
+    let resul = checkHasDropzoneClass(event.target);
+    if(resul == 1){
         event.target.style.background = hoverColor;
         return;
-    }
-    // Lấy ra cha của element
-    let parentEle = event.target.parentElement;
-    // Nếu cha Element không có class dropzone thì quay lại
-    if(!parentEle.classList.contains('dropzone')){
-        // Reset lại background      
-        event.target.style.background = "";
+    } else if(resul == 2){        
+        // Kiểm tra đó có phải quân cờ của mình không, nếu trùng thì return
+        if( playerSelect.player == event.target.getAttribute("player")){
+            event.target.style.background = "";
+            return;
+        }
+        event.target.style.background = hoverKillColor;
         return;
-    }
-    // Kiểm tra đó có phải quân cờ của mình không, nếu trùng thì return
-    if( playerSelect.player == event.target.getAttribute("player")){
-        event.target.style.background = "";
-        return;
-    }
-    event.target.style.background = hoverKillColor;
+    }    
+    event.target.style.background = "";    
 }, false);
 
 // Hàm khi kéo cờ ra vị trí khác thì trả lại màu nền ban đầu
@@ -133,38 +129,42 @@ document.addEventListener("dragleave", function(event) {
 document.addEventListener("drop", function(event) {
     // prevent default action (open as link for some elements)
     event.preventDefault();
-    // Kiểm tra xem nơi thả có đúng ô không
-    if (!event.target.classList.contains('dropzone')) {
+    // Kiểm tra xem nơi thả có đúng ô không, 1: ô trống, 2: ô đã có quân cờ, -1: thả không đúng ô trên bàn cờ
+    let resul = checkHasDropzoneClass(event.target);
+    if(resul == 1){
+        // Reset màu background lại như cũ
+        event.target.style.background = "";
+        
+        // Xóa vị trí cũ cờ của mình
+        playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
+        // Thêm cờ của mình vào vị trí mới
+        event.target.appendChild( playerSelect.dragged );
+    } else if(resul == 2){
         // Lấy ra cha của element không có class dropzone
         let parentEle = event.target.parentElement;
-        // Nếu cha Element không có class dropzone thì quay lại
-        if(!parentEle.classList.contains('dropzone')){
-            event.target.style.background = "";
-            return;
-        }
         // Kiểm tra đó có phải quân cờ của mình không, nếu trùng thì return
         if( playerSelect.player == event.target.getAttribute("player")){
             event.target.style.background = "";
             return;
         }
-        // Nếu là quân cờ của đối thủ thì
-        
-        // Xóa cờ đối thủ
+        // Nếu là quân cờ của đối thủ thì Xóa cờ đối thủ
         parentEle.innerText = '';
         // Xóa vị trí cũ cờ của mình
         playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
         // Thêm cờ của mình vào vị trí mới
-        parentEle.appendChild( playerSelect.dragged );
-        return;
+        parentEle.appendChild( playerSelect.dragged );        
     }
-    // Nếu là ô không có con cờ nào
-
-    // Reset màu background lại như cũ
-    event.target.style.background = "";
-    
-    // Xóa vị trí cũ cờ của mình
-    playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
-    // Thêm cờ của mình vào vị trí mới
-    event.target.appendChild( playerSelect.dragged );
-    
 }, false);
+
+function checkHasDropzoneClass(target){
+    // Nếu có chứa dropzone có nghĩa là ô trống không có quân cờ, return 1
+    if(target.classList.contains('dropzone')){
+        return 1;
+    }
+    // Nếu element cha có chứa dropzone có nghĩa là ô có quân cờ, return 2
+    if(target.parentElement?.classList.contains('dropzone')){
+        return 2;
+    }
+    // không có gì hết return -1
+    return -1;
+}
