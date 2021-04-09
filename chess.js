@@ -36,7 +36,7 @@ document.querySelectorAll("[piece]").forEach(target =>{
     if(player == '' || piece == ''){
         return
     }
-    target.setAttribute("empty", "false");
+    target.setAttribute("isMove", "false");      // Biến kiểm tra đã di chuyển quân cờ lần nào chưa
     let backgroundColorTarget =  target.backgroundColor;
     if(player == 'white'){
         target.innerText = piecesCharWhite[piece];
@@ -50,10 +50,10 @@ document.querySelectorAll("[piece]").forEach(target =>{
 
 document.addEventListener('mousedown', function(event) {
     // Kiểm tra xem có đúng lượt của người chơi không
-    if(event.target.getAttribute("player") != playerTurn){
-        event.preventDefault();
-        return;
-    }
+    // if(event.target.getAttribute("player") != playerTurn){
+    //     event.preventDefault();
+    //     return;
+    // }
 });
 
 /* events fired on the draggable target */
@@ -86,6 +86,12 @@ document.addEventListener("dragstart", function(event) {
         case "queen":
             showQueenMove(parentDragg.getAttribute("row"),parentDragg.getAttribute("column"));
             break;
+        case "king":
+            showKingMove(parentDragg.getAttribute("row"),parentDragg.getAttribute("column"));
+            break;
+        case "pawn":
+            showPawnMove(parentDragg.getAttribute("row"),parentDragg.getAttribute("column"));
+            break;
         default:
             break;
     }
@@ -113,23 +119,6 @@ document.addEventListener("dragenter", function(event) {
         return;
     }
     event.target.style.opacity = .3;
-    
-    // // Lấy ô trêm bàm cờ
-    // let spot = getParentByClass(event.target,'dropzone');
-    // // Nếu người chơi trỏ không đúng ô thì return
-    // if(!spot){
-    //     return;
-    // }
-    // // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return
-    // if(spot.firstChild?.getAttribute("player") == playerSelect.player){
-    //     return;
-    // }
-    // // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu không thì chuyển background thành màu hoverKillColor
-    // if(spot.firstChild && spot.firstChild?.getAttribute("player") != playerSelect.player) {        
-    //     event.target.style.background = hoverKillColor;
-    //     return;
-    // }
-    // event.target.style.background = hoverColor;
 }, false);
 
 // Hàm khi kéo cờ ra vị trí khác thì trả lại màu nền ban đầu
@@ -140,13 +129,6 @@ document.addEventListener("dragleave", function(event) {
         return;
     }
     event.target.style.opacity = "";
-    // // Lấy ô trêm bàm cờ
-    // let spot = getParentByClass(event.target,'dropzone');
-    // // Nếu người chơi trỏ không đúng ô thì return
-    // if(!spot){
-    //     return;
-    // }
-    // event.target.style.background = "";
 }, false);
 
 // Hàm thả quân cờ
@@ -156,8 +138,9 @@ document.addEventListener("drop", function(event) {
     // event.preventDefault();
     
     // Lấy ô trêm bàm cờ
-    let objXY = getLocationXY(event.target);
-    if(!isPlaceable(objXY.locX, objXY.locY)){
+    let locationXY = getLocationXY(event.target);
+    if(!locationXY){return;}
+    if(!isPlaceable(locationXY[0], locationXY[1])){
         event.preventDefault();
         // Xóa background cho bàn cờ cái này không đặt lên trước được 
         // tại vì isPlaceable check xem ô có background thì mới kiểm tra
@@ -167,6 +150,9 @@ document.addEventListener("drop", function(event) {
     // Xóa background cho bàn cờ
     clearBoardBackground();
 
+    console.log(checkPosHaveChessLooked(4,4));
+    // Sửa lại giá trị cho quân cờ là đã di chuyển nó rồi
+    setChesMoved(locationXY[0], locationXY[1]);
     // Lấy cha của đối tượng được Drop cờ xuống
     let spot = getParentByClass(event.target,'dropzone');    
     // Xóa cờ đối thủ
@@ -181,11 +167,8 @@ document.addEventListener("drop", function(event) {
 
 function getLocationXY(target){    
     let spot = getParentByClass(target,'dropzone');
-    let obj = {
-        locX: spot.getAttribute("row"),
-        locY: spot.getAttribute("column")
-    }
-    return obj;
+    if(!spot){return;}
+    return [parseInt(spot.getAttribute("row")), parseInt(spot.getAttribute("column"))];
 }
 
 function clearBoardBackground(){
@@ -197,6 +180,31 @@ function clearBoardBackground(){
         item.style.opacity = "";
     });
 }
+
+// Hàm lấy tên quân cờ tại vị trí x,y giúp cho hàm kiểm tra quân check
+function getTypePiece(locationX, locationY){
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){return null;}
+    if(!target.firstChild){return null;}
+    return target.firstChild.getAttribute("piece");
+}
+
+// Hàm lấy thuộc tính isMove tại vị trí x,y
+function isChesMoved(locationX, locationY){
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){return null;}
+    if(!target.firstChild){return null;}
+    return (target.firstChild.getAttribute("isMove") == "true") ? true : fasle;
+}
+function setChesMoved(locationX, locationY){
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){return;}
+    if(!target.firstChild){return;}
+    if(!isChesMoved) {
+        target.setAttribute("isMove", "true");
+    };
+}
+
 
 function getParentByClass(element, className){
     // Nếu element đó có tên class thì trả về
@@ -220,7 +228,7 @@ function isMyChess(locationX, locationY){
     if(!target){return -1;}
     if(!target.firstChild){return -1;}
     // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return false
-    if(target.firstChild.getAttribute("player") == playerSelect.player){
+    if(target.firstChild?.getAttribute("player") == playerSelect.player){
         return 1;
     }
     return 0;
@@ -229,8 +237,9 @@ function isMyChess(locationX, locationY){
 function isPlaceable(locationX, locationY){    
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
     // Kiểm tra cờ có phải của mình
-    let objXY = getLocationXY(target)
-    if(!target || isMyChess(objXY.locX, objXY.locY) == 1){
+    let locationXY = getLocationXY(target)
+    if(!locationXY){return false;}
+    if(!target || isMyChess(locationXY[0], locationXY[1]) == 1){
         return false;
     }
     // Kiểm tra người dùng có đặt đúng vào ô có background xanh hoặc đỏ
@@ -249,22 +258,78 @@ function makeColorBG(locationX, locationY) {
         return -1;
     }
     if(target.firstChild){
-        let objXY = getLocationXY(target)
-        if(isMyChess(objXY.locX, objXY.locY) == 1){
+        let locationXY = getLocationXY(target);
+        let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]);
+        if(checkIsMyChess == 1){
             target.style.background = "";
             return -1;
-        } else {                
+        } else if(checkIsMyChess == 0){                
             target.style.background = hoverKillColor;
-            return 2;     
+            return 2;
         }
     }
     target.style.background = hoverColor;
     return 1;
 }
 
-//====================== Các hàm kiểm tra nước đi của các quân cờ =====================
+// Hàm kiểm tra vị trí đã có quân địch chiếm chưa
+function checkPosHaveChessLooked(locationX, locationY){
+    let chesses = document.querySelectorAll('.chess');
+    for (i = 0; i < chesses.length; i++){
+        let locationXY = getLocationXY(chesses[i]);
+        let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]);
+        if(checkIsMyChess == 1){continue;}
+        let type = getTypePiece(locationXY[0], locationXY[1]);
+        switch(type){
+            case "knight":
+                let knightMoves = knightMove(locationXY[0], locationXY[1]);
+                knightMoves.forEach(([x, y])=>{
+                    if(x == locationXY[0], y == locationXY[1]){
+                        return true;
+                    }
+                });
+                break;
+            case "rook":
+                let rookMoves = rookMove(locationXY[0], locationXY[1]);
+                rookMoves.forEach(([x, y])=>{
+                    if(x == locationXY[0], y == locationXY[1]){
+                        return true;
+                    }
+                });
+                break;
+            case "bishop":
+                let bishopMoves = bishopMove(locationXY[0], locationXY[1]);
+                bishopMoves.forEach(([x, y])=>{
+                    if(x == locationXY[0], y == locationXY[1]){
+                        return true;
+                    }
+                });
+                break;
+            case "queen":
+                let queenMoves = queenMove(locationXY[0], locationXY[1]);
+                queenMoves.forEach(([x, y])=>{
+                    if(x == locationXY[0], y == locationXY[1]){
+                        return true;
+                    }
+                });
+                break;
+            // case "king":
+            //     break;
+            // case "pawn":
+            //     break;
+            default:
+                break;
+        }
+        // Thoát khỏi vòng lặp nếu đã có quân địch chặn ô rồi
+        return false;
+    }
+    return false;
+}
 
-function showKnightMove(posX, posY){    
+
+//====================== Các hàm kiểm tra nước đi của các quân cờ =====================
+function knightMove(posX, posY){
+    let arrayLocation = [];
     // Kiểm tra hình vuông bán kính 2 ô có các vị trí đúng để con mã có thể di chuyển
     for(row = -2; row <= 2; row++){
         for(col = -2; col <= 2; col++){
@@ -273,281 +338,198 @@ function showKnightMove(posX, posY){
             if(x * y == 2){
                 let destinationX = parseInt(posX) + parseInt(row);
                 let destinationY = parseInt(posY) + parseInt(col);
+                arrayLocation.push([destinationX,destinationY]);
+            }
+        }
+    }
+    return arrayLocation;
+}
+function rookMove(posX, posY){
+    let arrayLocation = [];
+    // Nước đi bên phải
+    for(step = 1; step < 8; step++){
+        let destinationY = parseInt(posY) - parseInt(step);
+
+        let letIsMyChess = isMyChess(posX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([parseInt(posX),destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([parseInt(posX),destinationY]);
+        }
+    }
+
+    // Nước đi bên trái
+    for(step = 1; step < 8; step++){
+        let destinationY = parseInt(posY) + parseInt(step);
+
+        let letIsMyChess = isMyChess(posX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([parseInt(posX),destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([parseInt(posX),destinationY]);
+        }
+    }
+
+    // Nước đi bên trên
+    for(step = 1; step < 8; step++){
+        let destinationX = parseInt(posX) + parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, posY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,parseInt(posY)]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,parseInt(posY)]);
+        }
+    }
+
+    // Nước đi bên dưới
+    for(step = 1; step < 8; step++){
+        let destinationX = parseInt(posX) - parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, posY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,parseInt(posY)]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,parseInt(posY)]);
+        }
+    }
+    return arrayLocation;
+}
+
+function bishopMove(posX, posY, callback){
+    let arrayLocation = [];
+    // Nước đi bên trên trái
+    for(step = 1; step < 8; step++){        
+        let destinationX = parseInt(posX) - parseInt(step);
+        let destinationY = parseInt(posY) + parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,destinationY]);
+        }
+    }
+
+    // Nước đi bên trên phải
+    for(step = 1; step < 8; step++){
+        let destinationX = parseInt(posX) + parseInt(step);
+        let destinationY = parseInt(posY) + parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,destinationY]);
+        }
+    }
+
+    // Nước đi bên dưới phải
+    for(step = 1; step < 8; step++){
+        let destinationX = parseInt(posX) + parseInt(step);
+        let destinationY = parseInt(posY) - parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,destinationY]);
+        }
+    }
+
+    // Nước đi bên dưới trái
+    for(step = 1; step < 8; step++){
+        let destinationX = parseInt(posX) - parseInt(step);
+        let destinationY = parseInt(posY) - parseInt(step);
+
+        let letIsMyChess = isMyChess(destinationX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            arrayLocation.push([destinationX,destinationY]);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            arrayLocation.push([destinationX,destinationY]);
+        }
+    }
+    return arrayLocation;
+}
+// Là code của xe và sĩ gộp lại
+function queenMove(posX, posY){    
+    let rookMoves = rookMove(posX, posY);
+    let bishopMoves = bishopMove(posX, posY);
+    return [...rookMoves, ...bishopMoves]
+}
+function showKnightMove(posX, posY){    
+    let knightMoves = knightMove(posX, posY);
+    knightMoves.forEach(([x, y])=>{
+        makeColorBG(x,y);
+    });
+}
+function showRookMove(posX, posY){
+    let rookMoves = rookMove(posX, posY);
+    rookMoves.forEach(([x, y])=>{
+        makeColorBG(x,y);
+    });
+}
+function showBishopMove(posX, posY){
+    let bishopMoves = bishopMove(posX, posY);
+    bishopMoves.forEach(([x, y])=>{
+        makeColorBG(x,y);
+    });   
+}
+// Là code của xe và sĩ gộp lại
+function showQueenMove(posX, posY){
+    let queenMoves = queenMove(posX, posY);
+    queenMoves.forEach(([x, y])=>{
+        makeColorBG(x,y);
+    });     
+}
+function showKingMove(posX, posY){
+    // Kiểm tra hình vuông bán kính 1 ô có các vị trí đúng để vua có thể di chuyển
+    for(row = -1; row <= 1; row++){
+        for(col = -1; col <= 1; col++){
+            let x = Math.abs(row);
+            let y = Math.abs(col);
+            if(x + y <= 2){
+                let destinationX = parseInt(posX) + parseInt(row);
+                let destinationY = parseInt(posY) + parseInt(col);
                 makeColorBG(destinationX, destinationY);
             }
         }
     }
+
+    // if(!isChesMoved(posX, posY))
 }
-function showRookMove(posX, posY){
-    // Nước đi bên phải
-    for(step = 1; step < 8; step++){
-        let destinationY = parseInt(posY) - parseInt(step);
+function showPawnMove(posX, posY){
 
-        let letIsMyChess = isMyChess(posX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(posX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(posX, destinationY);
-        }
-    }
-
-    // Nước đi bên trái
-    for(step = 1; step < 8; step++){
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(posX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(posX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(posX, destinationY);
-        }
-    }
-
-    // Nước đi bên trên
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, posY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, posY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, posY);
-        }
-    }
-
-    // Nước đi bên dưới
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, posY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, posY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, posY);
-        }
-    }
-    
-}
-function showBishopMove(posX, posY){
-    // Nước đi bên trên trái
-    for(step = 1; step < 8; step++){        
-        let destinationX = parseInt(posX) - parseInt(step);
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên trên phải
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên dưới phải
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-        let destinationY = parseInt(posY) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên dưới trái
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) - parseInt(step);
-        let destinationY = parseInt(posY) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-    
-}
-// Là code của xe và sĩ gộp lại
-function showQueenMove(posX, posY){
-    // Nước đi bên phải
-    for(step = 1; step < 8; step++){
-        let destinationY = parseInt(posY) - parseInt(step);
-
-        let letIsMyChess = isMyChess(posX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(posX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(posX, destinationY);
-        }
-    }
-
-    // Nước đi bên trái
-    for(step = 1; step < 8; step++){
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(posX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(posX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(posX, destinationY);
-        }
-    }
-
-    // Nước đi bên trên
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, posY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, posY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, posY);
-        }
-    }
-
-    // Nước đi bên dưới
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, posY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, posY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, posY);
-        }
-    }
-
-
-
-    // Nước đi bên trên trái
-    for(step = 1; step < 8; step++){        
-        let destinationX = parseInt(posX) - parseInt(step);
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên trên phải
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-        let destinationY = parseInt(posY) + parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên dưới phải
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) + parseInt(step);
-        let destinationY = parseInt(posY) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-
-    // Nước đi bên dưới trái
-    for(step = 1; step < 8; step++){
-        let destinationX = parseInt(posX) - parseInt(step);
-        let destinationY = parseInt(posY) - parseInt(step);
-
-        let letIsMyChess = isMyChess(destinationX, destinationY);
-        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
-        if(letIsMyChess == 1 || letIsMyChess == 0){
-            makeColorBG(destinationX, destinationY);
-            break;
-        }
-        // Ô không có cờ
-        if(letIsMyChess == -1){
-            makeColorBG(destinationX, destinationY);
-        }
-    }
-    
 }
