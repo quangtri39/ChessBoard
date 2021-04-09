@@ -46,6 +46,7 @@ document.querySelectorAll("[piece]").forEach(target =>{
 });
 
 
+//====================== Các hàm event drag drop =====================
 
 document.addEventListener('mousedown', function(event) {
     // Kiểm tra xem có đúng lượt của người chơi không
@@ -76,8 +77,10 @@ document.addEventListener("dragstart", function(event) {
         case "knight":
             showKnightMove(parentDragg.getAttribute("row"),parentDragg.getAttribute("column"));
             break;
+        case "rook":
+            showRookMove(parentDragg.getAttribute("row"),parentDragg.getAttribute("column"));
+            break;
         default:
-            console.log(playerSelect.piece);
     }
     // Cho màu cờ nhạt đi
     event.target.style.opacity = .5;
@@ -138,7 +141,8 @@ document.addEventListener("drop", function(event) {
     // event.preventDefault();
     
     // Lấy ô trêm bàm cờ
-    if(!isPlaceable(event.target)){
+    let objXY = getLocationXY(event.target);
+    if(!isPlaceable(objXY.locX, objXY.locY)){
         event.preventDefault();
         // Xóa background cho bàn cờ cái này không đặt lên trước được 
         // tại vì isPlaceable check xem ô có background thì mới kiểm tra
@@ -158,45 +162,25 @@ document.addEventListener("drop", function(event) {
     spot.appendChild( playerSelect.dragged );
 }, false);
 
+//====================== Các hàm khác =====================
+
+function getLocationXY(target){    
+    let spot = getParentByClass(target,'dropzone');
+    let obj = {
+        locX: spot.getAttribute("row"),
+        locY: spot.getAttribute("column")
+    }
+    return obj;
+}
+
 function clearBoardBackground(){
     // Lấy tất cả các ô trên bàn cờ rồi reset background
-    let spots = document.querySelectorAll('[row]');
+    let spots = document.querySelectorAll('div');
     // Reset màu background lại như cũ
     spots.forEach(item =>{
         item.style.background = "";        
         item.style.opacity = "";
     });
-    
-    spots = document.querySelectorAll('.chess');
-    spots.forEach(item =>{
-        item.style.background = "";        
-        item.style.opacity = "";
-    });
-}
-
-function isMyChess(target){
-    let spot = getParentByClass(target,'dropzone');
-    // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return false
-    if(spot.firstChild?.getAttribute("player") == playerSelect.player){
-        return true;
-    }
-    return false;
-}
-
-function isPlaceable(target){
-    let spot = getParentByClass(target,'dropzone');
-    if(!spot){
-        return;
-    }
-    // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return false
-    if(isMyChess(target)){
-        return false;
-    }
-    // Kiểm tra người dùng có đặt đúng vào ô không
-    if(spot.style.background == ""){
-        return;
-    }
-    return true;
 }
 
 function getParentByClass(element, className){
@@ -214,10 +198,59 @@ function getParentByClass(element, className){
     // Không có thì trả về rỗng
     return null;
 }
+// Hàm kiểm tra có phải đây là quân cờ của mình không
+// Có return 1, Không return 0, Nếu không có cờ return -1
+function isMyChess(locationX, locationY){
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){return -1;}
+    if(!target.firstChild){return -1;}
+    // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return false
+    if(target.firstChild.getAttribute("player") == playerSelect.player){
+        return 1;
+    }
+    return 0;
+}
+
+function isPlaceable(locationX, locationY){    
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    // Kiểm tra cờ có phải của mình
+    let objXY = getLocationXY(target)
+    if(!target || isMyChess(objXY.locX, objXY.locY) == 1){
+        return false;
+    }
+    // Kiểm tra người dùng có đặt đúng vào ô có background xanh hoặc đỏ
+    // if(spot.style.background == ""){
+    //     return false;
+    // }
+    // Các trường hợp còn lại bao gồm: background màu xanh lá hoặc màu đỏ
+    return true;
+}
+
+// Hàm thay đổi background cho các ô
+// Xanh return 1, Đỏ return 2; còn lại return -1
+function makeColorBG(locationX, locationY) {
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){
+        return -1;
+    }
+    if(target.firstChild){
+        let objXY = getLocationXY(target)
+        if(isMyChess(objXY.locX, objXY.locY) == 1){
+            target.style.background = "";
+            return -1;
+        } else {                
+            target.style.background = hoverKillColor;
+            return 2;     
+        }
+    }
+    target.style.background = hoverColor;
+    return 1;
+}
+
+//====================== Các hàm kiểm tra nước đi của các quân cờ =====================
 
 function showKnightMove(posX, posY){    
-    // Lấy bàn cờ
-    let board = document.querySelector('#board');
+    // Kiểm tra hình vuông bán kính 2 ô có các vị trí đúng để con mã có thể di chuyển
     for(row = -2; row <= 2; row++){
         for(col = -2; col <= 2; col++){
             let x = Math.abs(row);
@@ -225,21 +258,74 @@ function showKnightMove(posX, posY){
             if(x * y == 2){
                 let destinationX = parseInt(posX) + parseInt(row);
                 let destinationY = parseInt(posY) + parseInt(col);
-                var spot = document.querySelector(`[row="${destinationX}"][column="${destinationY}"]`);
-                if(!spot){
-                    continue;
-                }
-                if(spot.firstChild){
-                    if(isMyChess(spot.firstChild)){
-                        spot.style.background = "";
-                        continue;
-                    } else {                
-                        spot.style.background = hoverKillColor;
-                        continue;      
-                    }
-                }
-                spot.style.background = hoverColor;
+                makeColorBG(destinationX, destinationY);
             }
         }
     }
+}
+function showRookMove(posX, posY){
+    // Nước đi bên phải
+    for(col = 1; col < 8; col++){
+        let destinationY = parseInt(posY) - parseInt(col);
+
+        let letIsMyChess = isMyChess(posX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            makeColorBG(posX, destinationY);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            makeColorBG(posX, destinationY);
+        }
+    }
+
+    // Nước đi bên trái
+    for(col = 1; col < 8; col++){
+        let destinationY = parseInt(posY) + parseInt(col);
+
+        let letIsMyChess = isMyChess(posX, destinationY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            makeColorBG(posX, destinationY);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            makeColorBG(posX, destinationY);
+        }
+    }
+
+    // Nước đi bên trên
+    for(row = 1; row < 8; row++){
+        let destinationX = parseInt(posX) + parseInt(row);
+
+        let letIsMyChess = isMyChess(destinationX, posY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            makeColorBG(destinationX, posY);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            makeColorBG(destinationX, posY);
+        }
+    }
+
+    // Nước đi bên dưới
+    for(row = 1; row < 8; row++){
+        let destinationX = parseInt(posX) - parseInt(row);
+
+        let letIsMyChess = isMyChess(destinationX, posY);
+        // Ô có cờ ta và cờ địch thoát khỏi vòng lặp phía sau
+        if(letIsMyChess == 1 || letIsMyChess == 0){
+            makeColorBG(destinationX, posY);
+            break;
+        }
+        // Ô không có cờ
+        if(letIsMyChess == -1){
+            makeColorBG(destinationX, posY);
+        }
+    }
+    
 }
