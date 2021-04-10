@@ -149,8 +149,6 @@ document.addEventListener("drop", function(event) {
     }
     // Xóa background cho bàn cờ
     clearBoardBackground();
-
-    console.log(checkPosHaveChessLooked(4,4));
     // Sửa lại giá trị cho quân cờ là đã di chuyển nó rồi
     setChesMoved(locationXY[0], locationXY[1]);
     // Lấy cha của đối tượng được Drop cờ xuống
@@ -275,41 +273,42 @@ function makeColorBG(locationX, locationY) {
 // Hàm kiểm tra vị trí đã có quân địch chiếm chưa
 function checkPosHaveChessLooked(locationX, locationY){
     let chesses = document.querySelectorAll('.chess');
+    let isLooked = false;
     for (i = 0; i < chesses.length; i++){
-        let locationXY = getLocationXY(chesses[i]);
-        let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]);
+        let locationXY = getLocationXY(chesses[i]); // Lấy vị trí của quân cờ
+        let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]); // Kiểm tra nếu là quân cờ mình thì cho qua
         if(checkIsMyChess == 1){continue;}
         let type = getTypePiece(locationXY[0], locationXY[1]);
         switch(type){
             case "knight":
                 let knightMoves = knightMove(locationXY[0], locationXY[1]);
                 knightMoves.forEach(([x, y])=>{
-                    if(x == locationXY[0], y == locationXY[1]){
-                        return true;
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
                     }
                 });
                 break;
             case "rook":
                 let rookMoves = rookMove(locationXY[0], locationXY[1]);
                 rookMoves.forEach(([x, y])=>{
-                    if(x == locationXY[0], y == locationXY[1]){
-                        return true;
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
                     }
                 });
                 break;
             case "bishop":
                 let bishopMoves = bishopMove(locationXY[0], locationXY[1]);
                 bishopMoves.forEach(([x, y])=>{
-                    if(x == locationXY[0], y == locationXY[1]){
-                        return true;
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
                     }
                 });
                 break;
             case "queen":
                 let queenMoves = queenMove(locationXY[0], locationXY[1]);
                 queenMoves.forEach(([x, y])=>{
-                    if(x == locationXY[0], y == locationXY[1]){
-                        return true;
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
                     }
                 });
                 break;
@@ -320,8 +319,9 @@ function checkPosHaveChessLooked(locationX, locationY){
             default:
                 break;
         }
-        // Thoát khỏi vòng lặp nếu đã có quân địch chặn ô rồi
-        return false;
+        if(isLooked){
+            return true;
+        }
     }
     return false;
 }
