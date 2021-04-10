@@ -30,13 +30,13 @@ var playerSelect = {
 }
 
 // Khởi tạo bàn cờ
-document.querySelectorAll("[piece]").forEach(target =>{
+document.querySelectorAll(".chess").forEach(target =>{
     let player = target.getAttribute("player");  // Lấy người chơi ở các ô
     let piece = target.getAttribute("piece");   // Lấy quân cờ ở các ô
     if(player == '' || piece == ''){
         return
     }
-    target.setAttribute("isMove", "false");      // Biến kiểm tra đã di chuyển quân cờ lần nào chưa
+    target.setAttribute("ismoved", "false");      // Biến kiểm tra đã di chuyển quân cờ lần nào chưa
     let backgroundColorTarget =  target.backgroundColor;
     if(player == 'white'){
         target.innerText = piecesCharWhite[piece];
@@ -149,8 +149,6 @@ document.addEventListener("drop", function(event) {
     }
     // Xóa background cho bàn cờ
     clearBoardBackground();
-    // Sửa lại giá trị cho quân cờ là đã di chuyển nó rồi
-    setChesMoved(locationXY[0], locationXY[1]);
     // Lấy cha của đối tượng được Drop cờ xuống
     let spot = getParentByClass(event.target,'dropzone');    
     // Xóa cờ đối thủ
@@ -180,28 +178,29 @@ function clearBoardBackground(){
 }
 
 // Hàm lấy tên quân cờ tại vị trí x,y giúp cho hàm kiểm tra quân check
-function getTypePiece(locationX, locationY){
-    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-    if(!target){return null;}
-    if(!target.firstChild){return null;}
-    return target.firstChild.getAttribute("piece");
+function getPieceInfo(locationX, locationY){
+    let spot = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!spot){return null;}
+    let chess = spot.firstChild;
+    if(!chess){return null;}
+    let pieceName = chess.getAttribute("piece");
+    let player = chess.getAttribute("player");
+    let ismoved = (chess.getAttribute("ismoved") == "true") ? true : false;
+    return {pieceName: pieceName, player: player, ismoved: ismoved};
 }
 
-// Hàm lấy thuộc tính isMove tại vị trí x,y
-function isChesMoved(locationX, locationY){
-    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-    if(!target){return null;}
-    if(!target.firstChild){return null;}
-    return (target.firstChild.getAttribute("isMove") == "true") ? true : fasle;
-}
-function setChesMoved(locationX, locationY){
-    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-    if(!target){return;}
-    if(!target.firstChild){return;}
-    if(!isChesMoved) {
-        target.setAttribute("isMove", "true");
-    };
-}
+// Hàm lấy thuộc tính ismoved tại vị trí x,y
+// function isChesMoved(locationX, locationY){
+//     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+//     if(!target){return null;}
+//     if(!target.firstChild){return null;}
+//     return (target.firstChild.getAttribute("ismoved") == "true") ? true : fasle;
+// }
+// function setChesMoved(locationX, locationY){
+//     if(isChesMoved(locationX, locationY) == false) {
+//         target.setAttribute("ismoved", "true");
+//     };
+// }
 
 
 function getParentByClass(element, className){
@@ -225,8 +224,10 @@ function isMyChess(locationX, locationY){
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
     if(!target){return -1;}
     if(!target.firstChild){return -1;}
+    // Kiểm tra xem ô có textContent là rỗng thì quay lại
+    if(target.textContent.trim() == ""){return -1;}
     // kiểm tra quân cờ ở ô đó có phải quân cờ của mình không, nếu trùng thì return false
-    if(target.firstChild?.getAttribute("player") == playerSelect.player){
+    if(target.firstChild.getAttribute("player") == playerSelect.player){
         return 1;
     }
     return 0;
@@ -272,14 +273,18 @@ function makeColorBG(locationX, locationY) {
 
 // Hàm kiểm tra vị trí đã có quân địch chiếm chưa
 function checkPosHaveChessLooked(locationX, locationY){
+    // Nếu vị trí đó không có
+    let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
+    if(!target){return -1;}
+
     let chesses = document.querySelectorAll('.chess');
     let isLooked = false;
     for (i = 0; i < chesses.length; i++){
         let locationXY = getLocationXY(chesses[i]); // Lấy vị trí của quân cờ
         let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]); // Kiểm tra nếu là quân cờ mình thì cho qua
         if(checkIsMyChess == 1){continue;}
-        let type = getTypePiece(locationXY[0], locationXY[1]);
-        switch(type){
+        let objPiece = getPieceInfo(locationXY[0], locationXY[1]);
+        switch(objPiece.pieceName){
             case "knight":
                 let knightMoves = knightMove(locationXY[0], locationXY[1]);
                 knightMoves.forEach(([x, y])=>{
@@ -312,10 +317,16 @@ function checkPosHaveChessLooked(locationX, locationY){
                     }
                 });
                 break;
-            // case "king":
-            //     break;
-            // case "pawn":
-            //     break;
+            case "king":
+                let kingMoves = kingMove(locationXY[0], locationXY[1], false);
+                kingMoves.forEach(([x, y])=>{
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
+                    }
+                });
+                break;
+            case "pawn":
+                break;
             default:
                 break;
         }
@@ -412,7 +423,7 @@ function rookMove(posX, posY){
     return arrayLocation;
 }
 
-function bishopMove(posX, posY, callback){
+function bishopMove(posX, posY){
     let arrayLocation = [];
     // Nước đi bên trên trái
     for(step = 1; step < 8; step++){        
@@ -489,6 +500,57 @@ function queenMove(posX, posY){
     let bishopMoves = bishopMove(posX, posY);
     return [...rookMoves, ...bishopMoves]
 }
+function kingMove(posX, posY, checkcastling = true){
+    let arrayLocation = [];
+    // Kiểm tra hình vuông bán kính 1 ô có các vị trí đúng để vua có thể di chuyển
+    for(row = -1; row <= 1; row++){
+        for(col = -1; col <= 1; col++){
+            let x = Math.abs(row);
+            let y = Math.abs(col);
+            if(x + y <= 2){
+                let destinationX = parseInt(posX) + parseInt(row);
+                let destinationY = parseInt(posY) + parseInt(col);
+                arrayLocation.push([destinationX,destinationY]);
+            }
+        }
+    }
+    // Nếu hàm không yêu cầu castling thì khỏi kiểm tra
+    if(!checkcastling){return arrayLocation;}
+    // Kiểm tra castling
+
+    // Nếu vua đang bị chiếu thì không được casling
+    if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY))){return arrayLocation;}
+    // Nếu vua đã di chuyển thì không cho nữa
+    if(getPieceInfo(posX, posY).ismoved == true){return arrayLocation;}
+
+    let rooks = document.querySelectorAll('[piece="rook"]');
+    console.log(rooks)
+    for (i = 0; i <= rooks.length; i++){     
+        console.log(rooks[i], i, rooks.length)
+        let arrLocationRook = getLocationXY(rooks[i]);   
+        // Nếu con xe không phải quân của mình thì không cho
+        if(!isMyChess(arrLocationRook[0], arrLocationRook[1])){continue;}
+        // Nếu xe đã di chuyển thì không cho
+        if(rooks[i].getAttribute("ismoved") == "true"){continue;}    
+        // Nếu xe ở bên trái 
+            
+        if(parseInt(posY) - arrLocationRook[1] > 0){
+            //Nếu 2 vị trí bên trái đã có quân địch chiếu vào rồi thì không cho
+            if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) - 1)){continue;}
+            if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) - 2)){continue;}
+            arrayLocation.push([parseInt(posX), posY - 2]);
+        } else {
+            //Nếu 2 vị trí bên phải đã có quân địch chiếu vào rồi thì không cho
+            if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) + 1)){continue;}
+            if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) + 2)){continue;}
+            arrayLocation.push([parseInt(posX), parseInt(posY) + 2]);
+        }
+    }
+    return arrayLocation;
+}
+
+
+
 function showKnightMove(posX, posY){    
     let knightMoves = knightMove(posX, posY);
     knightMoves.forEach(([x, y])=>{
@@ -515,20 +577,12 @@ function showQueenMove(posX, posY){
     });     
 }
 function showKingMove(posX, posY){
-    // Kiểm tra hình vuông bán kính 1 ô có các vị trí đúng để vua có thể di chuyển
-    for(row = -1; row <= 1; row++){
-        for(col = -1; col <= 1; col++){
-            let x = Math.abs(row);
-            let y = Math.abs(col);
-            if(x + y <= 2){
-                let destinationX = parseInt(posX) + parseInt(row);
-                let destinationY = parseInt(posY) + parseInt(col);
-                makeColorBG(destinationX, destinationY);
-            }
-        }
-    }
-
-    // if(!isChesMoved(posX, posY))
+    let kingMoves = kingMove(posX, posY);
+    kingMoves.forEach(([x, y])=>{
+        if(!checkPosHaveChessLooked(x, y)){
+            makeColorBG(x,y);
+        }        
+    }); 
 }
 function showPawnMove(posX, posY){
 
