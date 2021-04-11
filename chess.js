@@ -157,6 +157,8 @@ document.addEventListener("drop", function(event) {
     playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
     // Thêm cờ của mình vào vị trí mới
     spot.appendChild( playerSelect.dragged );
+    // Chuyển thuộc tính isdraged cho cờ thành true
+    playerSelect.dragged.setAttribute("ismoved", "true");
 }, false);
 
 //====================== Các hàm khác =====================
@@ -222,7 +224,7 @@ function getParentByClass(element, className){
 // Có return 1, Không return 0, Nếu không có cờ return -1
 function isMyChess(locationX, locationY){
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-    if(!target){return -1;}
+    if(!target){return -2;}
     if(!target.firstChild){return -1;}
     // Kiểm tra xem ô có textContent là rỗng thì quay lại
     if(target.textContent.trim() == ""){return -1;}
@@ -358,7 +360,7 @@ function knightMove(posX, posY){
 function rookMove(posX, posY){
     let arrayLocation = [];
     // Nước đi bên phải
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationY = parseInt(posY) - parseInt(step);
 
         let letIsMyChess = isMyChess(posX, destinationY);
@@ -374,7 +376,7 @@ function rookMove(posX, posY){
     }
 
     // Nước đi bên trái
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationY = parseInt(posY) + parseInt(step);
 
         let letIsMyChess = isMyChess(posX, destinationY);
@@ -390,7 +392,7 @@ function rookMove(posX, posY){
     }
 
     // Nước đi bên trên
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationX = parseInt(posX) + parseInt(step);
 
         let letIsMyChess = isMyChess(destinationX, posY);
@@ -406,7 +408,7 @@ function rookMove(posX, posY){
     }
 
     // Nước đi bên dưới
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationX = parseInt(posX) - parseInt(step);
 
         let letIsMyChess = isMyChess(destinationX, posY);
@@ -426,7 +428,7 @@ function rookMove(posX, posY){
 function bishopMove(posX, posY){
     let arrayLocation = [];
     // Nước đi bên trên trái
-    for(step = 1; step < 8; step++){        
+    for(let step = 1; step < 8; step++){        
         let destinationX = parseInt(posX) - parseInt(step);
         let destinationY = parseInt(posY) + parseInt(step);
 
@@ -443,7 +445,7 @@ function bishopMove(posX, posY){
     }
 
     // Nước đi bên trên phải
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationX = parseInt(posX) + parseInt(step);
         let destinationY = parseInt(posY) + parseInt(step);
 
@@ -460,7 +462,7 @@ function bishopMove(posX, posY){
     }
 
     // Nước đi bên dưới phải
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationX = parseInt(posX) + parseInt(step);
         let destinationY = parseInt(posY) - parseInt(step);
 
@@ -477,7 +479,7 @@ function bishopMove(posX, posY){
     }
 
     // Nước đi bên dưới trái
-    for(step = 1; step < 8; step++){
+    for(let step = 1; step < 8; step++){
         let destinationX = parseInt(posX) - parseInt(step);
         let destinationY = parseInt(posY) - parseInt(step);
 
@@ -524,14 +526,13 @@ function kingMove(posX, posY, checkcastling = true){
     if(getPieceInfo(posX, posY).ismoved == true){return arrayLocation;}
 
     let rooks = document.querySelectorAll('[piece="rook"]');
-    for (let i = 0; i <= rooks.length; i++){     
-        let arrLocationRook = getLocationXY(rooks[i]);   
+    for (let i = 0; i < rooks.length; i++){     
+        let arrLocationRook = getLocationXY(rooks[i]); 
         // Nếu con xe không phải quân của mình thì không cho
         if(!isMyChess(arrLocationRook[0], arrLocationRook[1])){continue;}
         // Nếu xe đã di chuyển thì không cho
         if(rooks[i].getAttribute("ismoved") == "true"){continue;}    
         // Nếu xe ở bên trái 
-            
         if(parseInt(posY) - arrLocationRook[1] > 0){
             //Nếu 2 vị trí bên trái đã có quân địch chiếu vào rồi thì không cho
             if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) - 1)){continue;}
@@ -546,7 +547,47 @@ function kingMove(posX, posY, checkcastling = true){
     }
     return arrayLocation;
 }
-
+function pawnMove(posX, posY){
+    let arrayLocation = [];
+    var infoChess = getPieceInfo(posX, posY);
+    // Nếu là tốt màu trắng thì đi lên trên
+    if(infoChess.player == "white"){
+        // Nếu tốt chưa di chuyển thì cho di chuyển 2 bước
+        if(!infoChess.ismoved){
+            arrayLocation.push([parseInt(posX) + 2, posY]);
+        }
+        // Nếu ô trên không có quân
+        if(isMyChess(parseInt(posX) + 1, posY) == -1){    
+            arrayLocation.push([parseInt(posX) + 1, posY]);
+        }
+        // Nếu ô chéo trên trái là quân địch
+        if(isMyChess(parseInt(posX) + 1, parseInt(posY) - 1) == 0){            
+            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) - 1]);
+        }
+        // Nếu ô chéo trên phải là quân địch
+        if(isMyChess(parseInt(posX) + 1, parseInt(posY) + 1) == 0){            
+            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) + 1]);
+        }
+    } else {        
+        // Nếu tốt chưa di chuyển thì cho di chuyển 2 bước
+        if(!infoChess.ismoved){
+            arrayLocation.push([parseInt(posX) - 2, posY]);
+        }
+        // Nếu ô dưới không có quân
+        if(isMyChess(parseInt(posX) - 1, posY) == -1){    
+            arrayLocation.push([parseInt(posX) - 1, posY]);
+        }
+        // Nếu ô chéo dưới trái là quân địch
+        if(isMyChess(parseInt(posX) - 1, parseInt(posY) - 1) == 0){            
+            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) - 1]);
+        }
+        // Nếu ô chéo dưới phải là quân địch
+        if(isMyChess(parseInt(posX) - 1, parseInt(posY) + 1) == 0){            
+            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) + 1]);
+        }
+    }
+    return arrayLocation;
+}
 
 
 function showKnightMove(posX, posY){    
@@ -583,5 +624,8 @@ function showKingMove(posX, posY){
     }); 
 }
 function showPawnMove(posX, posY){
-
+    let pawnMoves = pawnMove(posX, posY);
+    pawnMoves.forEach(([x, y])=>{
+        makeColorBG(x,y);
+    }); 
 }
