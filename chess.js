@@ -524,9 +524,7 @@ function kingMove(posX, posY, checkcastling = true){
     if(getPieceInfo(posX, posY).ismoved == true){return arrayLocation;}
 
     let rooks = document.querySelectorAll('[piece="rook"]');
-    console.log(rooks)
-    for (i = 0; i <= rooks.length; i++){     
-        console.log(rooks[i], i, rooks.length)
+    for (let i = 0; i <= rooks.length; i++){     
         let arrLocationRook = getLocationXY(rooks[i]);   
         // Nếu con xe không phải quân của mình thì không cho
         if(!isMyChess(arrLocationRook[0], arrLocationRook[1])){continue;}
