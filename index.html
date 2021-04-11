@@ -83,8 +83,13 @@
         <div row="1" column="7" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="knight"></div></div>
         <div row="1" column="8" class="dropzone square"><div class="chess" draggable="true" player="white" piece="rook"></div></div>
     </div>
-    <div id="menuSelectPromotion  animated fadeInDown">
-
+    <div id="promotion" class="hiden">
+        <div class="menu">            
+            <div id="sellectQueen" class="itemPromotion" onclick="promotion('queen')">♕ Queen</div>
+            <div id="sellectKnight" class="itemPromotion" onclick="promotion('knight')">♘ Knight</div>
+            <div id="sellectRook" class="itemPromotion" onclick="promotion('rook')">♖ Rook</div>
+            <div id="sellectBishop" class="itemPromotion" onclick="promotion('bishop')">♗ Bishop</div>
+        </div>
     </div>
 </body>
 </html>

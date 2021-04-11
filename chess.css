@@ -7,15 +7,6 @@
 .wrapper{
     position: relative;
 }
-#menuSelectPromotion{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 300px;
-    height: 500px;
-    background-color: #73AD21;
-    transform: translate(-50%, -50%);
-}
 #board{
     width: 800px;
     height: 800px;
@@ -38,4 +29,42 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+/* ================== Cho promotion pawn =================== */
+#promotion{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.3);
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.menu{
+    display: flex;
+    flex-direction: column;
+    height: 480px;
+    width: 450px;
+    background-color: yellow;
+}
+.itemPromotion{
+    height: 100px;
+    margin: 10px;
+    background-color: rgba(200, 100, 0, 0.3);
+    font-size: 6rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+}
+.itemPromotion:hover{
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.hiden{
+    display: none !important;
 }

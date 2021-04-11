@@ -2,6 +2,13 @@ const hoverColor = 'green';     // Chuyển thành màu xanh khi kéo cờ vào 
 const hoverKillColor = 'red';   // Chuyển thành màu đỏ khi kéo quân cờ ta vào quân cờ địch
 var playerTurn = 'white';       // Biến đến lượt người chơi
 
+// Các biến kiểm tra trong quá trình code
+// Tính năng chỉ được thả vào ô có màu xanh, ở dòng 339
+const MOVE = true;
+// Tính năng thay đổi lượt đi, ở dòng 67
+const CHANGETURN = true;
+
+
 const piecesCharWhite = {
     pawn: '♙',
     knight: '♘',
@@ -45,15 +52,24 @@ document.querySelectorAll(".chess").forEach(target =>{
     }
 });
 
+function changeTurn(){
+    if(playerTurn == 'white'){
+        playerTurn = 'black';
+    } else {
+        playerTurn = 'white';
+    }
+}
 
 //====================== Các hàm event drag drop =====================
 
 document.addEventListener('mousedown', function(event) {
     // Kiểm tra xem có đúng lượt của người chơi không
-    // if(event.target.getAttribute("player") != playerTurn){
-    //     event.preventDefault();
-    //     return;
-    // }
+    if(CHANGETURN){
+        if(event.target.getAttribute("player") != playerTurn){
+            event.preventDefault();
+            return;
+        }
+    }
 });
 
 /* events fired on the draggable target */
@@ -133,8 +149,7 @@ document.addEventListener("dragleave", function(event) {
 
 // Hàm thả quân cờ
 document.addEventListener("drop", function(event) {
-    
-    // // prevent default action (open as link for some elements)
+        // // prevent default action (open as link for some elements)
     // event.preventDefault();
     
     // Lấy ô trêm bàm cờ
@@ -158,7 +173,22 @@ document.addEventListener("drop", function(event) {
     // Thêm cờ của mình vào vị trí mới
     spot.appendChild( playerSelect.dragged );
 
+    // Thay đổi nước đi của người chơi
+    if(CHANGETURN){
+        changeTurn();
+    }
 
+
+
+    // Kiểm tra promotion của con tốt
+    if(playerSelect.piece == "pawn"){  
+        // Đổi lại thành di chuyển rồi
+        playerSelect.dragged.setAttribute("ismoved", "true");
+        // Kiểm tra vị trí X của con tốt có đúng không
+        checkpromotion(locationXY[0]);
+        return
+    }
+    
     // Kiểm tra casling của tướng.
     // Nếu không phải là tướng thì return
     if(playerSelect.piece != "king"){
@@ -181,6 +211,54 @@ document.addEventListener("drop", function(event) {
     playerSelect.dragged.setAttribute("ismoved", "true");
 }, false);
 
+function checkpromotion(locX){
+    // Kiểm tra xem quân cờ của người dùng đang cầm có phải là tốt hay không
+    if(playerSelect.piece != "pawn"){return;}
+    // Kiểm tra xem vị trí quân tốt đặt có đúng nơi không 
+    if(playerSelect.player == "white"){
+        if(locX != 8){
+            return;
+        }
+    } else {
+        if(locX != 1){
+            return;
+        }
+    }
+    // Hiện bảng chọn promotion
+    document.querySelector("#promotion").classList.remove("hiden");
+}
+
+function promotion(type){
+    let chessSelect = [];
+    // Lấy ra list cờ đúng loại của người chơi
+    if(playerSelect.player == "white") {
+        chessSelect = piecesCharWhite;
+    } else {
+        chessSelect = piecesCharBlack;
+    }
+    // Sửa tên và sửa lại quân cờ
+    switch(type){
+        case "bishop":
+            playerSelect.dragged.setAttribute("piece", "bishop");
+            playerSelect.dragged.innerHTML = chessSelect["bishop"];
+            break;
+        case "knight":
+            playerSelect.dragged.setAttribute("piece", "knight");
+            playerSelect.dragged.innerHTML = chessSelect["knight"];
+            break;
+        case "rook":
+            playerSelect.dragged.setAttribute("piece", "rook");
+            playerSelect.dragged.innerHTML = chessSelect["rook"];
+            break;
+        default:
+            //queen
+            playerSelect.dragged.setAttribute("piece", "queen");
+            playerSelect.dragged.innerHTML = chessSelect["queen"];
+            break;
+    };
+    // sau khi người dùng bấm xong thì cho con tốt promotion và ẩn đi    
+    document.querySelector("#promotion").classList.add("hiden");
+}
 //====================== Các hàm khác =====================
 
 function setChessTo(curX, curY, desX, desY){
@@ -254,16 +332,19 @@ function isMyChess(locationX, locationY){
 
 function isPlaceable(locationX, locationY){    
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-    // Kiểm tra cờ có phải của mình
+    // Lấy vị trí cờ
     let locationXY = getLocationXY(target)
     if(!locationXY){return false;}
+    // Kiểm tra cờ có phải của mình
     if(!target || isMyChess(locationXY[0], locationXY[1]) == 1){
         return false;
     }
     // Kiểm tra người dùng có đặt đúng vào ô có background xanh hoặc đỏ
-    // if(spot.style.background == ""){
-    //     return false;
-    // }
+    if(MOVE){
+        if(target.style.background == ""){
+            return false;
+        }
+    }    
     // Các trường hợp còn lại bao gồm: background màu xanh lá hoặc màu đỏ
     return true;
 }
@@ -605,11 +686,11 @@ function pawnMove(posX, posY){
         }
         // Nếu ô chéo dưới trái là quân địch
         if(isMyChess(parseInt(posX) - 1, parseInt(posY) - 1) == 0){            
-            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) - 1]);
+            arrayLocation.push([parseInt(posX) - 1, parseInt(posY) - 1]);
         }
         // Nếu ô chéo dưới phải là quân địch
         if(isMyChess(parseInt(posX) - 1, parseInt(posY) + 1) == 0){            
-            arrayLocation.push([parseInt(posX) + 1, parseInt(posY) + 1]);
+            arrayLocation.push([parseInt(posX) - 1, parseInt(posY) + 1]);
         }
     }
     return arrayLocation;
