@@ -53,6 +53,7 @@ document.querySelectorAll(".chess").forEach(target =>{
 });
 
 function changeTurn(){
+    console.log(playerTurn)
     if(playerTurn == 'white'){
         playerTurn = 'black';
     } else {
@@ -172,12 +173,16 @@ document.addEventListener("drop", function(event) {
     playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
     // Thêm cờ của mình vào vị trí mới
     spot.appendChild( playerSelect.dragged );
-
+    
+    
+    // Xóa background cũ của vòng trước cho những con vua
+    removeColorBGKings();
+    // Kiểm tra con vua có bị check chưa
+    kingChecked();
     // Thay đổi nước đi của người chơi
     if(CHANGETURN){
         changeTurn();
     }
-
 
 
     // Kiểm tra promotion của con tốt
@@ -226,6 +231,29 @@ function checkpromotion(locX){
     }
     // Hiện bảng chọn promotion
     document.querySelector("#promotion").classList.remove("hiden");
+}
+
+function removeColorBGKings(){
+    let kings = document.querySelectorAll("[piece='king']");
+    for(let i = 0; i < kings.length; i++){
+        kings[i].style.background = "";
+    }
+}
+
+function kingChecked(){
+    let king;
+    if(playerTurn == 'white'){
+        king = document.querySelector("[piece='king'][player='black']");
+    } else {
+        king = document.querySelector("[piece='king'][player='white']");
+    }
+    console.log(king)
+    let locationXY = getLocationXY(king);
+    // Vì muốn kiểm tra con vua có check không nên truyền thêm 1 biến vào hàm checkPosHaveChessLooked để thay vì kiểm tra các cờ quân địch thì kiểm tra cờ quân mình
+    // Ví dụ sau khi thả cờ quân trắng xuống thì nó sẽ kiểm tra quân trắng luôn chứ ko phải kiểm tra quân đen. Nói như v hiểu ko ta =))))
+    if(checkPosHaveChessLooked(locationXY[0], locationXY[1], true)){
+        king.style.background = hoverKillColor;
+    }
 }
 
 function promotion(type){
@@ -333,7 +361,7 @@ function isMyChess(locationX, locationY){
 function isPlaceable(locationX, locationY){    
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
     // Lấy vị trí cờ
-    let locationXY = getLocationXY(target)
+    let locationXY = getLocationXY(target);
     if(!locationXY){return false;}
     // Kiểm tra cờ có phải của mình
     if(!target || isMyChess(locationXY[0], locationXY[1]) == 1){
@@ -372,7 +400,7 @@ function makeColorBG(locationX, locationY) {
 }
 
 // Hàm kiểm tra vị trí đã có quân địch chiếm chưa
-function checkPosHaveChessLooked(locationX, locationY){
+function checkPosHaveChessLooked(locationX, locationY, revertisMyChess = false){
     // Nếu vị trí đó không có
     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
     if(!target){return -1;}
@@ -382,7 +410,14 @@ function checkPosHaveChessLooked(locationX, locationY){
     for (i = 0; i < chesses.length; i++){
         let locationXY = getLocationXY(chesses[i]); // Lấy vị trí của quân cờ
         let checkIsMyChess = isMyChess(locationXY[0], locationXY[1]); // Kiểm tra nếu là quân cờ mình thì cho qua
-        if(checkIsMyChess == 1){continue;}
+
+        if(revertisMyChess){
+            if(checkIsMyChess == 0){continue;}
+        } else {
+            if(checkIsMyChess == 1){continue;}
+        }        
+
+
         let objPiece = getPieceInfo(locationXY[0], locationXY[1]);
         switch(objPiece.pieceName){
             case "knight":
@@ -426,6 +461,12 @@ function checkPosHaveChessLooked(locationX, locationY){
                 });
                 break;
             case "pawn":
+                let pawnMoves = pawnMove(locationXY[0], locationXY[1], false);
+                pawnMoves.forEach(([x, y])=>{
+                    if(x == locationX && y == locationY){
+                        isLooked = true;
+                    }
+                });
                 break;
             default:
                 break;
