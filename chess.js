@@ -39,9 +39,9 @@ document.querySelectorAll(".chess").forEach(target =>{
     target.setAttribute("ismoved", "false");      // Biến kiểm tra đã di chuyển quân cờ lần nào chưa
     let backgroundColorTarget =  target.backgroundColor;
     if(player == 'white'){
-        target.innerText = piecesCharWhite[piece];
+        target.innerHTML = piecesCharWhite[piece];
     } else {
-        target.innerText = piecesCharBlack[piece];
+        target.innerHTML = piecesCharBlack[piece];
     }
 });
 
@@ -152,16 +152,47 @@ document.addEventListener("drop", function(event) {
     // Lấy cha của đối tượng được Drop cờ xuống
     let spot = getParentByClass(event.target,'dropzone');    
     // Xóa cờ đối thủ
-    spot.innerText = '';
+    spot.innerHTML = '';
     // Xóa vị trí cũ cờ của mình
     playerSelect.dragged.parentNode.removeChild( playerSelect.dragged );
     // Thêm cờ của mình vào vị trí mới
     spot.appendChild( playerSelect.dragged );
-    // Chuyển thuộc tính isdraged cho cờ thành true
+
+
+    // Kiểm tra casling của tướng.
+    // Nếu không phải là tướng thì return
+    if(playerSelect.piece != "king"){
+        // Chuyển thuộc tính isdraged cho cờ ngoại trừ vua thành true
+        playerSelect.dragged.setAttribute("ismoved", "true");
+        return
+    }
+    // Kiểm tra tướng di chuyển chưa
+    if(playerSelect.dragged.getAttribute("ismoved") == "true"){return}
+    // Lấy vị trí x y của tướng
+    let row = parseInt(playerSelect.row);
+    let col = parseInt(playerSelect.column);
+    // Nếu vị trí đích so với vị trí đầu lớn hơn 2 ô thì chứng tỏ turn này là casling bên phải
+    if(locationXY[1] - col == 2){
+        setChessTo(row, col + 3, row, col + 1);
+    } else if(locationXY[1] - col == -2){
+        setChessTo(row, col - 4, row, col - 1);
+    }
+    // Chuyển thuộc tính tướng là đã di chuyển rồi
     playerSelect.dragged.setAttribute("ismoved", "true");
 }, false);
 
 //====================== Các hàm khác =====================
+
+function setChessTo(curX, curY, desX, desY){
+    let target = document.querySelector(`[row="${parseInt(curX)}"][column="${parseInt(curY)}"] > .chess`);    
+    let currentSpot = document.querySelector(`[row="${parseInt(curX)}"][column="${parseInt(curY)}"]`);
+    let newSpot = document.querySelector(`[row="${parseInt(desX)}"][column="${parseInt(desY)}"]`);
+    // Thêm cờ của mình vào vị trí mới
+    newSpot.innerHTML = '';
+    newSpot.appendChild( target );
+    // Xóa vị trí cũ cờ của mình
+    currentSpot.innerHTML = "";
+}
 
 function getLocationXY(target){    
     let spot = getParentByClass(target,'dropzone');
@@ -184,26 +215,12 @@ function getPieceInfo(locationX, locationY){
     let spot = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
     if(!spot){return null;}
     let chess = spot.firstChild;
-    if(!chess){return null;}
+    if(!chess){return false;}
     let pieceName = chess.getAttribute("piece");
     let player = chess.getAttribute("player");
     let ismoved = (chess.getAttribute("ismoved") == "true") ? true : false;
     return {pieceName: pieceName, player: player, ismoved: ismoved};
 }
-
-// Hàm lấy thuộc tính ismoved tại vị trí x,y
-// function isChesMoved(locationX, locationY){
-//     let target = document.querySelector(`[row="${parseInt(locationX)}"][column="${parseInt(locationY)}"]`);
-//     if(!target){return null;}
-//     if(!target.firstChild){return null;}
-//     return (target.firstChild.getAttribute("ismoved") == "true") ? true : fasle;
-// }
-// function setChesMoved(locationX, locationY){
-//     if(isChesMoved(locationX, locationY) == false) {
-//         target.setAttribute("ismoved", "true");
-//     };
-// }
-
 
 function getParentByClass(element, className){
     // Nếu element đó có tên class thì trả về
@@ -533,12 +550,21 @@ function kingMove(posX, posY, checkcastling = true){
         // Nếu xe đã di chuyển thì không cho
         if(rooks[i].getAttribute("ismoved") == "true"){continue;}    
         // Nếu xe ở bên trái 
-        if(parseInt(posY) - arrLocationRook[1] > 0){
+        if(parseInt(posY) - arrLocationRook[1] > 0){                
+            // Kiểm tra ô có trống không bên trái (bỏ 2 dòng không ảnh hưởng tại trên đã kiểm tra rồi)
+            // if(!(isMyChess(parseInt(posX), parseInt(posY) - 1) == -1)){continue;}
+            // if(!(isMyChess(parseInt(posX), parseInt(posY) - 2) == -1)){continue;}
+            if(!(isMyChess(parseInt(posX), parseInt(posY) - 3) == -1)){continue;} 
+            
             //Nếu 2 vị trí bên trái đã có quân địch chiếu vào rồi thì không cho
             if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) - 1)){continue;}
             if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) - 2)){continue;}
             arrayLocation.push([parseInt(posX), posY - 2]);
-        } else {
+        } else {            
+            // Kiểm tra ô có trống không bên phải (bỏ 1 dòng không ảnh hưởng tại trên đã kiểm tra rồi)
+            if(!(isMyChess(parseInt(posX), parseInt(posY) + 1) == -1)){continue;}
+            // if(!(isMyChess(parseInt(posX), parseInt(posY) + 2) == -1)){continue;} 
+
             //Nếu 2 vị trí bên phải đã có quân địch chiếu vào rồi thì không cho
             if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) + 1)){continue;}
             if(checkPosHaveChessLooked(parseInt(posX), parseInt(posY) + 2)){continue;}
