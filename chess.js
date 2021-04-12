@@ -1,6 +1,7 @@
 const hoverColor = 'green';     // Chuyển thành màu xanh khi kéo cờ vào ô
 const hoverKillColor = 'red';   // Chuyển thành màu đỏ khi kéo quân cờ ta vào quân cờ địch
 var playerTurn = 'white';       // Biến đến lượt người chơi
+const ID = Date.now();
 
 // Các biến kiểm tra trong quá trình code
 // Tính năng chỉ được thả vào ô có màu xanh, ở dòng 339
@@ -35,6 +36,11 @@ var playerSelect = {
     row: '',        // Dòng
     column: ''      // Cột
 }
+var chessGame = {
+    id: ID,
+    playerTurn: playerTurn,
+    ListTurn: []
+}
 
 // Khởi tạo bàn cờ
 document.querySelectorAll(".chess").forEach(target =>{
@@ -44,7 +50,6 @@ document.querySelectorAll(".chess").forEach(target =>{
         return
     }
     target.setAttribute("ismoved", "false");      // Biến kiểm tra đã di chuyển quân cờ lần nào chưa
-    let backgroundColorTarget =  target.backgroundColor;
     if(player == 'white'){
         target.innerHTML = piecesCharWhite[piece];
     } else {
@@ -52,6 +57,36 @@ document.querySelectorAll(".chess").forEach(target =>{
     }
 });
 
+// Hàm thêm thông tin lượt đi vào chessGame
+function getTurnInfo(){
+    let boardInfo = [];
+    document.querySelectorAll(".chess").forEach(target =>{
+        // Lấy vị trí trêm bàm cờ
+        let locationXY = getLocationXY(target);
+        let player = target.getAttribute("player");  // Lấy người chơi ở các ô
+        let piece = target.getAttribute("piece");   // Lấy quân cờ ở các ô
+        let pieceInfo = {
+            locX: locationXY[0],
+            locY: locationXY[1],
+            player: player,
+            piece: piece,
+        }
+        boardInfo.push(pieceInfo);
+    });
+    return boardInfo;
+}
+
+// Hàm convert chessGame thành JSON
+function chessGameJSON(){
+   return JSON.stringify(chessGame);
+}
+// Hamf 
+function chessGameVariable(JSONString){
+    chessGame = JSON.parse(JSONString);
+    console.log(chessGame);
+}
+
+// Hàm thay đổi lượt đi
 function changeTurn(){
     console.log(playerTurn)
     if(playerTurn == 'white'){
@@ -150,7 +185,7 @@ document.addEventListener("dragleave", function(event) {
 
 // Hàm thả quân cờ
 document.addEventListener("drop", function(event) {
-        // // prevent default action (open as link for some elements)
+    // // prevent default action (open as link for some elements)
     // event.preventDefault();
     
     // Lấy ô trêm bàm cờ
@@ -191,29 +226,29 @@ document.addEventListener("drop", function(event) {
         playerSelect.dragged.setAttribute("ismoved", "true");
         // Kiểm tra vị trí X của con tốt có đúng không
         checkpromotion(locationXY[0]);
-        return
     }
     
     // Kiểm tra casling của tướng.
     // Nếu không phải là tướng thì return
-    if(playerSelect.piece != "king"){
-        // Chuyển thuộc tính isdraged cho cờ ngoại trừ vua thành true
-        playerSelect.dragged.setAttribute("ismoved", "true");
-        return
-    }
-    // Kiểm tra tướng di chuyển chưa
-    if(playerSelect.dragged.getAttribute("ismoved") == "true"){return}
-    // Lấy vị trí x y của tướng
-    let row = parseInt(playerSelect.row);
-    let col = parseInt(playerSelect.column);
-    // Nếu vị trí đích so với vị trí đầu lớn hơn 2 ô thì chứng tỏ turn này là casling bên phải
-    if(locationXY[1] - col == 2){
-        setChessTo(row, col + 3, row, col + 1);
-    } else if(locationXY[1] - col == -2){
-        setChessTo(row, col - 4, row, col - 1);
-    }
+    if(playerSelect.piece == "king"){
+        // Kiểm tra tướng di chuyển chưa
+        if(playerSelect.dragged.getAttribute("ismoved") != "true"){
+            // Lấy vị trí x y của tướng
+            let row = parseInt(playerSelect.row);
+            let col = parseInt(playerSelect.column);
+            // Nếu vị trí đích so với vị trí đầu lớn hơn 2 ô thì chứng tỏ turn này là casling bên phải
+            if(locationXY[1] - col == 2){
+                setChessTo(row, col + 3, row, col + 1);
+            } else if(locationXY[1] - col == -2){
+                setChessTo(row, col - 4, row, col - 1);
+            }
+        }        
+    }    
     // Chuyển thuộc tính tướng là đã di chuyển rồi
     playerSelect.dragged.setAttribute("ismoved", "true");
+
+    chessGame.playerTurn = playerTurn;
+    chessGame.ListTurn.push(getTurnInfo());
 }, false);
 
 function checkpromotion(locX){
