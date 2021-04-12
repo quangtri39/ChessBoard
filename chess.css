@@ -68,3 +68,32 @@
 .hiden{
     display: none !important;
 }
+.return-Save-btn{
+    width: 220px;
+    height: 100px;
+    position: absolute;
+    top: 8px;
+    right: 320px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.returnbtn, .savebtn{
+    height: 100px;
+    width: 100px;
+    cursor: pointer;
+    margin-left: 10px;
+    border-radius: 50%;
+}
+
+.returnbtn:hover , .savebtn:hover{    
+    background-color: gray;
+}
+.returnbtn{
+    background: url("./img/btbBack.png");
+    background-size: 100px;
+}
+.savebtn{
+    background: url("./img/btnsave.png");
+    background-size: 100px;
+}

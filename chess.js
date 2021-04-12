@@ -1,7 +1,9 @@
 const hoverColor = 'green';     // Chuyển thành màu xanh khi kéo cờ vào ô
 const hoverKillColor = 'red';   // Chuyển thành màu đỏ khi kéo quân cờ ta vào quân cờ địch
-var playerTurn = 'white';       // Biến đến lượt người chơi
+const BEGINING_PLAYER_TURN = 'white';
+var playerTurn = BEGINING_PLAYER_TURN;       // Biến đến lượt người chơi
 const ID = Date.now();
+var BEGININGCHESSBOARD;
 
 // Các biến kiểm tra trong quá trình code
 // Tính năng chỉ được thả vào ô có màu xanh, ở dòng 339
@@ -56,24 +58,78 @@ document.querySelectorAll(".chess").forEach(target =>{
         target.innerHTML = piecesCharBlack[piece];
     }
 });
-
+// Sau khi khởi tạo bàn cờ thì lưu bàn cờ bắt đầu vào 1 biến để đến khi ấn nút quay lại mà array ko có thì lấy cái đấy lưu
+BEGININGCHESSBOARD = getTurnInfo();
+// Hàm clear bàn cờ
+function clearChessBoard(){
+    document.querySelectorAll('.dropzone').forEach(target =>{
+        target.innerHTML = "";
+    });
+}
+// Hàm load lại bàn cờ
+function loadChessBoard(){
+    clearChessBoard();
+    let lastTurn;
+    // Kiểm tra phần tử cuối mảng có không, không có tức là đang ở trạng thái bắt đầu
+    if(!chessGame.ListTurn[chessGame.ListTurn.length - 1]){
+        lastTurn = BEGININGCHESSBOARD.ListTurn;
+    } else {
+        // Lấy phần tử cuối mảng
+        lastTurn = chessGame.ListTurn[chessGame.ListTurn.length - 1];
+    }
+    let chessSelect = []
+    lastTurn.forEach(({locX, locY, player, piece, ismoved}) => {
+        // Lấy ra list cờ đúng loại của người chơi
+        if(player == "white") {
+            chessSelect = piecesCharWhite;
+        } else {
+            chessSelect = piecesCharBlack;
+        }
+        let targetPutChess = document.querySelector(`[row="${locX}"][column="${locY}"]`);
+        targetPutChess.innerHTML = `<div class="chess" draggable="true" player="${player}" piece="${piece}" ismoved="${ismoved}">${chessSelect[piece]}</div>`;
+    });
+}
+// Hàm popListTurn dùng cho nút
+function returnPlayerTurn(){
+    // Kiểm tra xem array có còn không = cách lấy phần tử cuối
+    if(!chessGame.ListTurn[chessGame.ListTurn.length - 1]){
+        playerTurn = BEGINING_PLAYER_TURN;
+    } else {
+        // Chuyển turn người chơi lại như trước
+        changeTurn();
+        chessGame.ListTurn.pop();
+    }
+    loadChessBoard();
+}
+// Hàm push LisTurn dùng ở event drop
+function pushListTurn(){
+    chessGame.playerTurn = playerTurn;
+    chessGame.ListTurn.push(getTurnInfo().ListTurn);
+}
 // Hàm thêm thông tin lượt đi vào chessGame
-function getTurnInfo(){
+function getTurnInfo(){    
     let boardInfo = [];
     document.querySelectorAll(".chess").forEach(target =>{
         // Lấy vị trí trêm bàm cờ
         let locationXY = getLocationXY(target);
-        let player = target.getAttribute("player");  // Lấy người chơi ở các ô
-        let piece = target.getAttribute("piece");   // Lấy quân cờ ở các ô
+        let player = target.getAttribute("player");
+        let piece = target.getAttribute("piece");// Lấy loại quân cờ
+        let ismoved = target.getAttribute("ismoved");
         let pieceInfo = {
             locX: locationXY[0],
             locY: locationXY[1],
             player: player,
             piece: piece,
+            ismoved: ismoved
         }
         boardInfo.push(pieceInfo);
     });
-    return boardInfo;
+    let turnInfo = {
+        id: chessGame.id,
+        playerTurn: chessGame.playerTurn,
+        ListTurn: boardInfo
+    }
+    return turnInfo;
 }
 
 // Hàm convert chessGame thành JSON
@@ -83,12 +139,10 @@ function chessGameJSON(){
 // Hamf 
 function chessGameVariable(JSONString){
     chessGame = JSON.parse(JSONString);
-    console.log(chessGame);
 }
 
 // Hàm thay đổi lượt đi
 function changeTurn(){
-    console.log(playerTurn)
     if(playerTurn == 'white'){
         playerTurn = 'black';
     } else {
@@ -190,7 +244,11 @@ document.addEventListener("drop", function(event) {
     
     // Lấy ô trêm bàm cờ
     let locationXY = getLocationXY(event.target);
-    if(!locationXY){return;}
+    // Nếu vị trí đó ko tồn tại
+    if(!locationXY){
+        clearBoardBackground();
+        return;
+    }
     if(!isPlaceable(locationXY[0], locationXY[1])){
         event.preventDefault();
         // Xóa background cho bàn cờ cái này không đặt lên trước được 
@@ -247,8 +305,7 @@ document.addEventListener("drop", function(event) {
     // Chuyển thuộc tính tướng là đã di chuyển rồi
     playerSelect.dragged.setAttribute("ismoved", "true");
 
-    chessGame.playerTurn = playerTurn;
-    chessGame.ListTurn.push(getTurnInfo());
+    pushListTurn();
 }, false);
 
 function checkpromotion(locX){
@@ -282,7 +339,6 @@ function kingChecked(){
     } else {
         king = document.querySelector("[piece='king'][player='white']");
     }
-    console.log(king)
     let locationXY = getLocationXY(king);
     // Vì muốn kiểm tra con vua có check không nên truyền thêm 1 biến vào hàm checkPosHaveChessLooked để thay vì kiểm tra các cờ quân địch thì kiểm tra cờ quân mình
     // Ví dụ sau khi thả cờ quân trắng xuống thì nó sẽ kiểm tra quân trắng luôn chứ ko phải kiểm tra quân đen. Nói như v hiểu ko ta =))))
