@@ -85,7 +85,6 @@ function checkPlayerWin() {
     document.querySelector(".ResulGame").style.add("hiden");
   }
   function saveChessGame() {
-    console.log(JSON.stringify(chessGame));
     fetch("http://localhost:3000/chess", {
       method: "POST",
       headers: {
@@ -95,7 +94,7 @@ function checkPlayerWin() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Success:", data);
+        console.assert("Lưu thành công!, mã bàn cờ của bạn: ", data.id);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -109,11 +108,11 @@ function checkPlayerWin() {
     fetch("http://localhost:3000/Chess/" + id)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         chessGame = data;
         // Thay doi luot nguoi choi
         playerTurn = chessGame.playerTurn;
         loadChessBoard();
+        console.alert("Load game thành công!");
       })
       .catch((err) => alert("Không có bàn cờ cần tìm!"));
   }
