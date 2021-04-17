@@ -68,32 +68,69 @@
 .hiden{
     display: none !important;
 }
-.return-Save-btn{
-    width: 220px;
-    height: 100px;
-    position: absolute;
-    top: 8px;
-    right: 320px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.return-Save-btn {
+  width: 220px;
+  height: 100px;
+  position: absolute;
+  top: 8px;
+  right: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
-.returnbtn, .savebtn{
-    height: 100px;
-    width: 100px;
-    cursor: pointer;
-    margin-left: 10px;
-    border-radius: 50%;
+.return-Save-btn div {
+  height: 100px;
+  width: 100px;
+  cursor: pointer;
+  margin-left: 10px;
 }
 
-.returnbtn:hover , .savebtn:hover{    
-    background-color: gray;
+.return-Save-btn div:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
-.returnbtn{
-    background: url("./img/btbBack.png");
-    background-size: 100px;
+.returnbtn {
+  background: url("./img/previous.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
 }
-.savebtn{
-    background: url("./img/btnsave.png");
-    background-size: 100px;
+.savebtn {
+  background: url("./img/floppy-disk.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+}
+.loadbtn {
+  background: url("./img/save.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+}
+/* Su ly khi ket thuc game */
+.ResulGame {
+  height: 900px;
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.textOutPut {
+  display: flex;
+}
+.PlayerName,
+.wintxt {
+  margin: 0px;
+}
+.wintxt {
+  margin-left: 20px;
+}
+.btnChoiLai {
+  font-size: 6rem;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.3);
 }

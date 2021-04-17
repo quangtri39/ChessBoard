@@ -60,6 +60,58 @@ document.querySelectorAll(".chess").forEach(target =>{
 });
 // Sau khi khởi tạo bàn cờ thì lưu bàn cờ bắt đầu vào 1 biến để đến khi ấn nút quay lại mà array ko có thì lấy cái đấy lưu
 BEGININGCHESSBOARD = getTurnInfo();
+// Hàm kiểm tra game đã có người chiến thắng chưa
+function checkPlayerWin() {
+    let kings = document.querySelectorAll("[piece='king']");
+    // Kiểm tra 2 con cờ vua có còn tồn tại
+    if (kings.length == 2) {
+      return;
+    }    
+    let locationXY = getLocationXY(kings[0]);    
+    let kingInfo = getPieceInfo(locationXY[0], locationXY[1]);
+    if(kingInfo.player == "white"){
+        document.querySelector(".PlayerName").innerHTML = "White";
+    } else {
+        document.querySelector(".PlayerName").innerHTML = "Black";
+    }
+    document.querySelector(".ResulGame").style.remove("hiden");
+  }
+  // Hàm reset game lại như lúc đầu
+  function resetGame() {
+    chessGame.ListTurn = BEGININGCHESSBOARD;
+    chessGame.id = Date.now();
+    chessGame.playerTurn = BEGINING_PLAYER_TURN;
+    loadChessBoard();
+    document.querySelector(".ResulGame").style.add("hiden");
+  }
+  function saveChessGame() {
+    console.log(JSON.stringify(chessGame));
+    fetch("http://localhost:3000/chess", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(chessGame),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
+  function loadGame(id) {
+    fetch("http://localhost:3000/Chess/" + id)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        chessGame = data;
+        // Thay doi luot nguoi choi
+        playerTurn = chessGame.playerTurn;
+        loadChessBoard();
+      });
+  }
 // Hàm clear bàn cờ
 function clearChessBoard(){
     document.querySelectorAll('.dropzone').forEach(target =>{
@@ -306,6 +358,8 @@ document.addEventListener("drop", function(event) {
     playerSelect.dragged.setAttribute("ismoved", "true");
 
     pushListTurn();
+    // Kiểm tra Người chơi win
+    checkPlayerWin();
 }, false);
 
 function checkpromotion(locX){
