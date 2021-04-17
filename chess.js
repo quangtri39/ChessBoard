@@ -94,7 +94,7 @@ function checkPlayerWin() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.alert("Lưu thành công!, mã bàn cờ của bạn: ", data.id);
+        alert("Lưu thành công!, mã bàn cờ của bạn: ", data.id);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -112,7 +112,7 @@ function checkPlayerWin() {
         // Thay doi luot nguoi choi
         playerTurn = chessGame.playerTurn;
         loadChessBoard();
-        console.alert("Load game thành công!");
+        alert("Load game thành công!");
       })
       .catch((err) => alert("Không có bàn cờ cần tìm!"));
   }
