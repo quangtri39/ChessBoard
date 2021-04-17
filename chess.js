@@ -101,7 +101,11 @@ function checkPlayerWin() {
         console.error("Error:", error);
       });
   }
-  function loadGame(id) {
+  function loadGame() {
+    var id = prompt("Mời nhập mã bàn cờ");
+    if (id == null) {
+      return;
+    }
     fetch("http://localhost:3000/Chess/" + id)
       .then((response) => response.json())
       .then((data) => {
@@ -110,7 +114,8 @@ function checkPlayerWin() {
         // Thay doi luot nguoi choi
         playerTurn = chessGame.playerTurn;
         loadChessBoard();
-      });
+      })
+      .catch((err) => alert("Không có bàn cờ cần tìm!"));
   }
 // Hàm clear bàn cờ
 function clearChessBoard(){
