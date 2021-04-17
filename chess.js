@@ -94,7 +94,7 @@ function checkPlayerWin() {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.assert("Lưu thành công!, mã bàn cờ của bạn: ", data.id);
+        console.alert("Lưu thành công!, mã bàn cờ của bạn: ", data.id);
       })
       .catch((error) => {
         console.error("Error:", error);
