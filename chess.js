@@ -7,7 +7,7 @@ var BEGININGCHESSBOARD;
 
 // Các biến kiểm tra trong quá trình code
 // Tính năng chỉ được thả vào ô có màu xanh, ở dòng 339
-const MOVE = true;
+const MOVE = false;
 // Tính năng thay đổi lượt đi, ở dòng 67
 const CHANGETURN = true;
 
@@ -74,15 +74,16 @@ function checkPlayerWin() {
     } else {
         document.querySelector(".PlayerName").innerHTML = "Black";
     }
-    document.querySelector(".ResulGame").style.remove("hiden");
+    document.querySelector(".ResulGame").classList.remove("hiden");
+    return true;
   }
   // Hàm reset game lại như lúc đầu
   function resetGame() {
-    chessGame.ListTurn = BEGININGCHESSBOARD;
+    chessGame.ListTurn = [];
     chessGame.id = Date.now();
     chessGame.playerTurn = BEGINING_PLAYER_TURN;
     loadChessBoard();
-    document.querySelector(".ResulGame").style.add("hiden");
+    document.querySelector(".ResulGame").classList.add("hiden");
   }
   function saveChessGame() {
     fetch("http://localhost:3000/chess", {
@@ -323,9 +324,12 @@ document.addEventListener("drop", function(event) {
     // Thêm cờ của mình vào vị trí mới
     spot.appendChild( playerSelect.dragged );
     
-    
+    // Kiểm tra Người chơi win
+    if(checkPlayerWin()){
+        return;
+    }
     // Xóa background cũ của vòng trước cho những con vua
-    removeColorBGKings();
+    removeColorBGKings();    
     // Kiểm tra con vua có bị check chưa
     kingChecked();
     // Thay đổi nước đi của người chơi
@@ -362,8 +366,6 @@ document.addEventListener("drop", function(event) {
     playerSelect.dragged.setAttribute("ismoved", "true");
 
     pushListTurn();
-    // Kiểm tra Người chơi win
-    checkPlayerWin();
 }, false);
 
 function checkpromotion(locX){
@@ -396,6 +398,9 @@ function kingChecked(){
         king = document.querySelector("[piece='king'][player='black']");
     } else {
         king = document.querySelector("[piece='king'][player='white']");
+    }
+    if(!king){
+        return;
     }
     let locationXY = getLocationXY(king);
     // Vì muốn kiểm tra con vua có check không nên truyền thêm 1 biến vào hàm checkPosHaveChessLooked để thay vì kiểm tra các cờ quân địch thì kiểm tra cờ quân mình
