@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess_JS</title>
+
+    <link rel="stylesheet" type="text/css" href="chess.css"/>
+    <script src="chess.js" defer></script>
+</head>
+<body>
+    <div id="board">
+        <div row="8" column="1" class="dropzone square"><div class="chess" draggable="true" player="black" piece="rook"></div></div>
+        <div row="8" column="2" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="knight"></div></div>
+        <div row="8" column="3" class="dropzone square"><div class="chess" draggable="true" player="black" piece="bishop"></div>    </div>
+        <div row="8" column="4" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="queen"></div></div>
+        <div row="8" column="5" class="dropzone square"><div class="chess" draggable="true" player="black" piece="king"></div></div>
+        <div row="8" column="6" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="bishop"></div></div>
+        <div row="8" column="7" class="dropzone square"><div class="chess" draggable="true" player="black" piece="knight"></div></div>
+        <div row="8" column="8" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="rook"></div></div>
+
+        <div row="7" column="1" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="2" class="dropzone square"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="3" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="4" class="dropzone square"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="5" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="6" class="dropzone square"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="7" class="dropzone square gray"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        <div row="7" column="8" class="dropzone square"><div class="chess" draggable="true" player="black" piece="pawn"></div></div>
+        
+        <div row="6" column="1" class="dropzone square"></div>
+        <div row="6" column="2" class="dropzone square gray"></div>
+        <div row="6" column="3" class="dropzone square"></div>
+        <div row="6" column="4" class="dropzone square gray"></div>
+        <div row="6" column="5" class="dropzone square"></div>
+        <div row="6" column="6" class="dropzone square gray"></div>
+        <div row="6" column="7" class="dropzone square"></div>
+        <div row="6" column="8" class="dropzone square gray"></div>
+        
+        <div row="5" column="1" class="dropzone square gray"></div>
+        <div row="5" column="2" class="dropzone square"></div>
+        <div row="5" column="3" class="dropzone square gray"></div>
+        <div row="5" column="4" class="dropzone square"></div>
+        <div row="5" column="5" class="dropzone square gray"></div>
+        <div row="5" column="6" class="dropzone square"></div>
+        <div row="5" column="7" class="dropzone square gray"></div>
+        <div row="5" column="8" class="dropzone square"></div>
+        
+        <div row="4" column="1" class="dropzone square"></div>
+        <div row="4" column="2" class="dropzone square gray"></div>
+        <div row="4" column="3" class="dropzone square"></div>
+        <div row="4" column="4" class="dropzone square gray"></div>
+        <div row="4" column="5" class="dropzone square"></div>
+        <div row="4" column="6" class="dropzone square gray"></div>
+        <div row="4" column="7" class="dropzone square"></div>
+        <div row="4" column="8" class="dropzone square gray"></div>
+        
+        <div row="3" column="1" class="dropzone square gray"></div>
+        <div row="3" column="2" class="dropzone square"></div>
+        <div row="3" column="3" class="dropzone square gray"></div>
+        <div row="3" column="4" class="dropzone square"></div>
+        <div row="3" column="5" class="dropzone square gray"></div>
+        <div row="3" column="6" class="dropzone square"></div>
+        <div row="3" column="7" class="dropzone square gray"></div>
+        <div row="3" column="8" class="dropzone square"></div>
+                
+        <div row="2" column="1" class="dropzone square"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="2" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="3" class="dropzone square"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="4" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="5" class="dropzone square"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="6" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="7" class="dropzone square"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+        <div row="2" column="8" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="pawn"></div></div>
+                
+        <div row="1" column="1" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="rook"></div></div>
+        <div row="1" column="2" class="dropzone square"><div class="chess" draggable="true" player="white" piece="knight"></div></div>
+        <div row="1" column="3" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="bishop"></div></div>
+        <div row="1" column="4" class="dropzone square"><div class="chess" draggable="true" player="white" piece="queen"></div></div>
+        <div row="1" column="5" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="king"></div></div>
+        <div row="1" column="6" class="dropzone square"><div class="chess" draggable="true" player="white" piece="bishop"></div></div>
+        <div row="1" column="7" class="dropzone square gray"><div class="chess" draggable="true" player="white" piece="knight"></div></div>
+        <div row="1" column="8" class="dropzone square"><div class="chess" draggable="true" player="white" piece="rook"></div></div>
+    </div>
+    <div id="promotion" class="hiden">
+        <div class="menu">            
+            <div id="sellectQueen" class="itemPromotion" onclick="promotion('queen')">♕ Queen</div>
+            <div id="sellectKnight" class="itemPromotion" onclick="promotion('knight')">♘ Knight</div>
+            <div id="sellectRook" class="itemPromotion" onclick="promotion('rook')">♖ Rook</div>
+            <div id="sellectBishop" class="itemPromotion" onclick="promotion('bishop')">♗ Bishop</div>
+        </div>
+    </div>
+    <div class="return-Save-btn">
+        <div class="returnbtn" onclick="returnPlayerTurn()"></div>
+        <div class="savebtn" onclick="saveChessGame()"></div>
+        <div class="loadbtn" onclick="loadGame()"></div>
+    </div>
+    <div class="ResulGame hiden">
+        <div class="textOutPut">
+            <p class="PlayerName">Player</p>
+            <p class="wintxt"> Win!</p>
+        </div>
+        <button class="btnChoiLai" onclick="resetGame()">Chơi lại</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,136 @@
+.gray{
+    background-color: lightgray;
+}
+.green{
+    background-color: green;
+}
+.wrapper{
+    position: relative;
+}
+#board{
+    width: 800px;
+    height: 800px;
+    margin: auto;    
+    display: flex;
+    flex-wrap: wrap;
+    user-select: none;
+    align-content: space-between;
+    justify-content: space-between;
+}
+.square{
+    width: 100px;
+    height: 100px;
+    display: inline-block;
+}
+.chess{
+    width: 100%;
+    height: 100%;
+    font-size: 6rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* ================== Cho promotion pawn =================== */
+#promotion{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.3);
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.menu{
+    display: flex;
+    flex-direction: column;
+    height: 480px;
+    width: 450px;
+    background-color: yellow;
+}
+.itemPromotion{
+    height: 100px;
+    margin: 10px;
+    background-color: rgba(200, 100, 0, 0.3);
+    font-size: 6rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+}
+.itemPromotion:hover{
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.hiden{
+    display: none !important;
+}
+.return-Save-btn {
+  width: 220px;
+  height: 100px;
+  position: absolute;
+  top: 8px;
+  right: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.return-Save-btn div {
+  height: 100px;
+  width: 100px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.return-Save-btn div:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.returnbtn {
+  background: url("./img/previous.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+}
+.savebtn {
+  background: url("./img/floppy-disk.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+}
+.loadbtn {
+  background: url("./img/save.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+}
+/* Su ly khi ket thuc game */
+.ResulGame {
+  height: 900px;
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background-color: rgba(0, 0, 0, 0.3);
+  font-size: 6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.textOutPut {
+  display: flex;
+}
+.PlayerName,
+.wintxt {
+  margin: 0px;
+}
+.wintxt {
+  margin-left: 20px;
+}
+.btnChoiLai {
+  font-size: 6rem;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.3);
+}
